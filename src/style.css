@@ -1,0 +1,83 @@
+:root {
+  --header-padding-block: 1rem;
+  --header-margin-inline: 1.5rem;
+  font-family: 'PT Mono', monospace, Inter, system-ui, Avenir, Helvetica, Arial,
+    sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #1b1b1b;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100%;
+  height: 100%;
+  border: 4px solid rgb(157, 195, 240);
+}
+
+.main {
+  height: 100%;
+  overflow-y: hidden;
+}
+
+canvas {
+  border: 4px solid rgb(199, 68, 68);
+  width: 100%;
+  height: 100%;
+}
+
+.logo {
+  font-size: 1.2rem;
+  font-weight: 300;
+  font-style: normal;
+  color: #ffffff;
+}
+
+.pt-mono-regular {
+  font-family: 'PT Mono', monospace;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.main {
+}
+
+/* .action-button {
+  color: black;
+  border: 2px solid black;
+  padding: 0.5rem 1rem;
+  text-align: center;
+  border-radius: 20px;
+  min-width: 100px;
+  width: 100px;
+  height: 40px;
+  font-size: 1rem;
+  font-weight: 700;
+  font-style: normal;
+} */
+
+/* header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-inline: var(--header-margin-inline);
+  padding-block: var(--header-padding-block);
+  border: 2px solid red;
+} */
+
+/* a {
+  text-decoration: none;
+  color: #ffffff;
+  cursor: pointer;
+  margin-left: 1rem;
+} */

@@ -1,80 +1,48 @@
 import * as THREE from 'three';
-// import { Geometry } from 'three/examples/jsm/deprecated/Geometry.js';
+import * as dat from 'dat.gui';
 
 const canvas: HTMLCanvasElement | null = document.querySelector('canvas');
 
 const scene = new THREE.Scene();
+
+//* LIGHTING
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.06);
+const pointLight = new THREE.PointLight(0xff0000, 1, 100);
+pointLight.position.set(1, 2, 1);
 scene.add(ambientLight);
+scene.add(pointLight);
 
-const light = new THREE.PointLight(0xff0000, 1, 100);
-light.position.set(1, 2, 1);
-scene.add(light);
-
-const geometry = new THREE.SphereGeometry(1);
-const material = new THREE.MeshToonMaterial({ color: 0xff0000 });
-const material2 = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
-const material3 = new THREE.MeshLambertMaterial({ color: 0x0000ff });
-const mesh = new THREE.Mesh(geometry, material);
-const mesh2 = new THREE.Mesh(geometry, material2);
-const mesh3 = new THREE.Mesh(geometry, material3);
-
-const offset = 2.3;
-
-// scene.add(mesh);
-// scene.add(mesh2);
-// scene.add(mesh3);
-mesh.position.set(0, offset, 0);
-mesh2.position.set(offset, 0, 0);
-mesh3.position.set(-offset, 0, 0);
-
-//create a sphere buffer geometry
-const SPHERE_FIDELITY = 16;
-const sphereGeometry = new THREE.SphereGeometry(
-  1,
-  SPHERE_FIDELITY,
-  SPHERE_FIDELITY
-);
-//warp the vertices using a noise function
-
-const position = sphereGeometry.attributes.position;
-const vertex = new THREE.Vector3();
-
-const VERTEX_OFFSET = 0.05;
-for (let i = 0, l = position.count; i < l; i++) {
-  vertex.fromBufferAttribute(position, i);
-  sphereGeometry.attributes.position.setXYZ(
-    i,
-    vertex.x + Math.random() * VERTEX_OFFSET,
-    vertex.y + Math.random() * VERTEX_OFFSET,
-    vertex.z + Math.random() * VERTEX_OFFSET
-  );
-}
-
-const sphere = new THREE.Mesh(
-  sphereGeometry,
-  new THREE.MeshLambertMaterial({ color: 0xfa00ff })
-);
-scene.add(sphere);
-
+//* CAMERA
 const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
   0.1,
   1000
 );
-camera.position.z = 5;
+camera.position.z = 10;
 
-const raycaster = new THREE.Raycaster();
+//* CREATE GEOMETRY (Sphere buffer geometry)
+const material = new THREE.MeshToonMaterial({ color: 0xff0000 });
+const SPHERE_FIDELITY = 16;
+const sphereGeometry = new THREE.SphereGeometry(
+  1,
+  SPHERE_FIDELITY,
+  SPHERE_FIDELITY
+);
+
+const sphere = new THREE.Mesh(sphereGeometry, material);
+scene.add(sphere);
+
+//* MOUSE MOVE
 const mouse = new THREE.Vector2();
-
 const onMouseMove = (event: MouseEvent) => {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 };
-
 window.addEventListener('mousemove', onMouseMove);
 
+//* CLICK
+const raycaster = new THREE.Raycaster();
 const onClick = (event: MouseEvent) => {
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObjects(scene.children);
@@ -86,32 +54,124 @@ const onClick = (event: MouseEvent) => {
     }
   }
 };
-
 window.addEventListener('click', onClick);
 
+//* RENDERER + RESIZE
 const renderer = new THREE.WebGLRenderer({ canvas: canvas! });
 renderer.setSize(window.innerWidth, window.innerHeight);
-
 const resizeCanvas = () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
 };
-
 window.addEventListener('resize', resizeCanvas);
 
-renderer.render(scene, camera);
+let previousTime = 0;
 
-const animate = () => {
+let enableGravity = true;
+let isPaused = true;
+const gravity = new THREE.Vector3(0, -9.8, 0);
+const velocity = new THREE.Vector3(0, 0, 0);
+const acceleration = new THREE.Vector3(0, 0, 0);
+const mass = 5;
+
+function animate(currentTime: number) {
+  const deltaTime = (currentTime - previousTime) / 1000; // Calculate time difference in seconds
+  console.log('Delta time: ', deltaTime);
+  previousTime = currentTime;
+  console.log('current time: ', currentTime);
+
+  enableGravity && acceleration.add(gravity.clone());
+
+  if (!isPaused) {
+    velocity.add(acceleration.clone().multiplyScalar(deltaTime));
+    sphere.position.add(velocity.clone().multiplyScalar(deltaTime));
+  }
+
   requestAnimationFrame(animate);
-  mesh.rotation.x += 0.01;
-  mesh.rotation.y += 0.01;
-  mesh2.rotation.x += 0.01;
-  mesh2.rotation.y += 0.01;
-  mesh3.rotation.x += 0.01;
-  mesh3.rotation.y += 0.01;
   renderer.render(scene, camera);
-};
+  acceleration.set(0, 0, 0);
+}
 
-animate();
-// document.body.appendChild(renderer.domElement);
+animate(0);
+
+var gui = new dat.GUI({ name: 'My GUI' });
+gui
+  .add(
+    {
+      resetSpherePosition: () => {
+        sphere.position.set(0, 0, 0);
+        velocity.set(0, 0, 0);
+      },
+    },
+    'resetSpherePosition'
+  )
+  .name('Reset Sphere Position');
+gui
+  .add({ pause: isPaused }, 'pause')
+  .name('Pause animation')
+  .onChange(() => {
+    isPaused = !isPaused;
+    if (isPaused) {
+      previousTime = 0;
+    }
+  });
+
+gui
+  .add(
+    {
+      useGravity: enableGravity,
+    },
+    'useGravity'
+  )
+  .onChange(() => {
+    enableGravity = !enableGravity;
+  })
+  .name('Apply gravity');
+
+gui
+  .add(
+    {
+      applyThrowForce: () => {
+        _applyForce(new THREE.Vector3(0, 1000, 0));
+        console.log('applying random force');
+      },
+    },
+    'applyThrowForce'
+  )
+  .name('Apply random force');
+
+function _applyForce(force: THREE.Vector3) {
+  velocity.set(0, 0, 0);
+  acceleration.add(force.clone().divideScalar(mass));
+}
+
+const calculateKinematicPosition = (
+  initialPosition: THREE.Vector3,
+  initialVelocity: THREE.Vector3,
+  acceleration: THREE.Vector3,
+  time: number
+) => {
+  return initialPosition
+    .clone()
+    .add(initialVelocity.clone().multiplyScalar(time))
+    .add(acceleration.clone().multiplyScalar(0.5 * time * time));
+}; //TODO  Draw a line to show the path of the sphere
+
+const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+
+const projectedPoints = [];
+for (let i = 0; i < 100; i++) {
+  const time = i / 10;
+  const position = calculateKinematicPosition(
+    sphere.position,
+    velocity,
+    acceleration,
+    time
+  );
+  projectedPoints.push(position);
+}
+
+const lineGeometry = new THREE.BufferGeometry().setFromPoints(projectedPoints);
+const line = new THREE.Line(lineGeometry, lineMaterial);
+scene.add(line);

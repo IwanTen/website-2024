@@ -77,9 +77,9 @@ const mass = 5;
 
 function animate(currentTime: number) {
   const deltaTime = (currentTime - previousTime) / 1000; // Calculate time difference in seconds
-  console.log('Delta time: ', deltaTime);
+  // console.log('Delta time: ', deltaTime); //! Debugging
   previousTime = currentTime;
-  console.log('current time: ', currentTime);
+  // console.log('current time: ', currentTime); //! Debugging
 
   enableGravity && acceleration.add(gravity.clone());
 
@@ -156,21 +156,27 @@ const calculateKinematicPosition = (
     .clone()
     .add(initialVelocity.clone().multiplyScalar(time))
     .add(acceleration.clone().multiplyScalar(0.5 * time * time));
-}; //TODO  Draw a line to show the path of the sphere
+};
 
+//TODO  Draw a line to show the path of the sphere
 const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
 
 const projectedPoints = [];
-for (let i = 0; i < 100; i++) {
-  const time = i / 10;
+const projectedTimeInSeconds = 2;
+const lineResolution = 100;
+
+for (let i = 0; i < lineResolution; i++) {
+  const time = i * (projectedTimeInSeconds / lineResolution);
   const position = calculateKinematicPosition(
     sphere.position,
-    velocity,
-    acceleration,
+    new THREE.Vector3(10, 3, 0),
+    new THREE.Vector3(6, -9.8, 0),
     time
   );
   projectedPoints.push(position);
 }
+
+console.log('projected points: ', projectedPoints);
 
 const lineGeometry = new THREE.BufferGeometry().setFromPoints(projectedPoints);
 const line = new THREE.Line(lineGeometry, lineMaterial);

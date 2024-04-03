@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import * as dat from 'dat.gui';
+import Ball from './ball';
 
+//TODO: Extract the majority of following code into scene file.
 const canvas: HTMLCanvasElement | null = document.querySelector('canvas');
 
 const scene = new THREE.Scene();
@@ -19,7 +21,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.z = 10;
+camera.position.z = 38;
 
 //* CREATE GEOMETRY (Sphere buffer geometry)
 const material = new THREE.MeshToonMaterial({ color: 0xff0000 });
@@ -30,8 +32,8 @@ const sphereGeometry = new THREE.SphereGeometry(
   SPHERE_FIDELITY
 );
 
-const sphere = new THREE.Mesh(sphereGeometry, material);
-scene.add(sphere);
+const sphereMesh = new Ball(sphereGeometry, material);
+scene.add(sphereMesh);
 
 //* MOUSE MOVE
 const mouse = new THREE.Vector2();
@@ -49,8 +51,8 @@ const onClick = (event: MouseEvent) => {
   if (intersects.length > 0) {
     const object = intersects[0].object;
     if (object instanceof THREE.Mesh) {
-      object.material.color.set(0xa0fb00);
       console.log('clicked on object!', object);
+      //TODO: Add functionality to show target trajectory.
     }
   }
 };
@@ -85,7 +87,7 @@ function animate(currentTime: number) {
 
   if (!isPaused) {
     velocity.add(acceleration.clone().multiplyScalar(deltaTime));
-    sphere.position.add(velocity.clone().multiplyScalar(deltaTime));
+    sphereMesh.position.add(velocity.clone().multiplyScalar(deltaTime));
   }
 
   requestAnimationFrame(animate);
@@ -100,7 +102,7 @@ gui
   .add(
     {
       resetSpherePosition: () => {
-        sphere.position.set(0, 0, 0);
+        sphereMesh.position.set(0, 0, 0);
         velocity.set(0, 0, 0);
       },
     },
@@ -158,7 +160,8 @@ const calculateKinematicPosition = (
     .add(acceleration.clone().multiplyScalar(0.5 * time * time));
 };
 
-//TODO  Draw a line to show the path of the sphere
+//TODO: Draw trajectory of target object.
+
 const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
 
 const projectedPoints = [];
@@ -168,7 +171,7 @@ const lineResolution = 100;
 for (let i = 0; i < lineResolution; i++) {
   const time = i * (projectedTimeInSeconds / lineResolution);
   const position = calculateKinematicPosition(
-    sphere.position,
+    sphereMesh.position,
     new THREE.Vector3(10, 3, 0),
     new THREE.Vector3(6, -9.8, 0),
     time

@@ -19,8 +19,6 @@ const camera = new THREE.PerspectiveCamera( //* CAMERA
 );
 camera.position.z = 18;
 
-//* Create our base sphere and pass to our Ball class
-
 const SPHERE_FIDELITY = 16;
 const sphereGeometry = new THREE.SphereGeometry(
   1,
@@ -38,14 +36,15 @@ const JugglingBallConfig = [
     startPos: [deltaSeperation, 0, 0],
     color: 0x00ff00,
   },
-  // {
-  //   startPos: [0, deltaSeperation, 0],
-  //   color: 0x0000ff,
-  // },
+  {
+    startPos: [0, deltaSeperation, 0],
+    color: 0x0000ff,
+  },
 ];
 
 const balls: JugglingBall[] = [];
 
+//* init juggling balls from config
 for (let ball of JugglingBallConfig) {
   balls.push(
     new JugglingBall(
@@ -56,16 +55,12 @@ for (let ball of JugglingBallConfig) {
   );
 }
 
-console.log(balls);
-
+//* add juggling balls to scene
 balls.forEach((ball) => {
   scene.add(ball);
 });
 
-// const Ball = new JugglingBall(sphereGeometry, material);
-// scene.add(Ball);
-
-const renderer = new THREE.WebGLRenderer({ canvas: canvas! }); //* RENDERER + RESIZE
+const renderer = new THREE.WebGLRenderer({ canvas: canvas! }); //* Init Renderer
 renderer.setSize(window.innerWidth, window.innerHeight);
 const resizeCanvas = () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -74,53 +69,90 @@ const resizeCanvas = () => {
 };
 window.addEventListener('resize', resizeCanvas);
 
-let previousTime = 0;
+let previousTime = Date.now();
 
 let enableGravity = false;
 let isPaused = false;
 const gravity = new THREE.Vector3(0, -9.8, 0);
-const velocity = new THREE.Vector3(0, 0, 0);
-const acceleration = new THREE.Vector3(0, 0, 0);
 const mass = 5;
 
-function animate(currentTime: number) {
-  const deltaTime = (currentTime - previousTime) / 1000; // Calculate time difference in seconds
-  previousTime = currentTime;
+function animate() {
+  let currentTime = Date.now();
+  const deltaTime = (currentTime - previousTime) / 1000;
 
-  enableGravity && acceleration.add(gravity.clone());
+  previousTime = currentTime;
 
   if (!isPaused) {
     balls.forEach((ball) => {
-      ball.updatePhysics(deltaTime, enableGravity);
+      ball.updatePhysics(deltaTime, enableGravity ? gravity : null);
     });
   }
 
   renderer.render(scene, camera);
-  acceleration.set(0, 0, 0);
   requestAnimationFrame(animate);
 }
 
-animate(0);
+animate();
 
-function _applyForce(force: THREE.Vector3) {
-  velocity.set(0, 0, 0);
-  acceleration.add(force.clone().divideScalar(mass));
+//* KINEMATICS / DEBUG (Draw trajectories of our ball objects)
+
+const PROJECTION_TIME = 1;
+const LINE_RESOLUTION = 100;
+
+// const lineGeometries = [];
+const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+//Create a line for each ball
+
+function _generatePath(
+  position: THREE.Vector3,
+  velocity: THREE.Vector3,
+  acceleration: THREE.Vector3,
+  seconds: number,
+  lineResolution: number
+) {
+  let pointArray = [];
+  for (let i = 0; i < lineResolution; i++) {
+    const time = i * (seconds / lineResolution);
+    let newPoint = _calculateKinematicPosition(
+      position,
+      new THREE.Vector3(0, 0, 0),
+      acceleration,
+      time
+    );
+    pointArray.push(newPoint);
+  }
+  return pointArray;
 }
 
-const _calculateKinematicPosition = (
+function _calculateKinematicPosition(
   initialPosition: THREE.Vector3,
   initialVelocity: THREE.Vector3,
   acceleration: THREE.Vector3,
   time: number
-) => {
+) {
   return initialPosition
     .clone()
     .add(initialVelocity.clone().multiplyScalar(time))
     .add(acceleration.clone().multiplyScalar(0.5 * time * time));
-};
+}
 
-//* GUI GUI GUI
+//* Generate an array of points for each ball
+for (let i = 0; i < balls.length; i++) {
+  let points = _generatePath(
+    balls[i].position,
+    balls[i].throwForce,
+    gravity,
+    PROJECTION_TIME,
+    LINE_RESOLUTION
+  );
 
+  let geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+  let line = new THREE.Line(geometry, lineMaterial);
+  scene.add(line);
+}
+
+//* DAT GUI
 var gui = new dat.GUI({ name: 'My GUI' });
 
 gui
@@ -133,29 +165,9 @@ gui
   .onChange(() => {
     enableGravity = !enableGravity;
   })
-  .name('Apply gravity');
+  .name('Enable global Force (gravity)');
 
-// //TODO: Draw trajectory of target object.
-
-// const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
-
-// const projectedPoints = [];
-// const projectedTimeInSeconds = 2;
-// const lineResolution = 100;
-
-// for (let i = 0; i < lineResolution; i++) {
-//   const time = i * (projectedTimeInSeconds / lineResolution);
-//   const position = calculateKinematicPosition(
-//     Ball.position,
-//     new THREE.Vector3(10, 3, 0),
-//     new THREE.Vector3(6, -9.8, 0),
-//     time
-//   );
-//   projectedPoints.push(position);
+// function _applyForce(force: THREE.Vector3) {
+//   velocity.set(0, 0, 0);
+//   acceleration.add(force.clone().divideScalar(mass));
 // }
-
-// console.log('projected points: ', projectedPoints);
-
-// const lineGeometry = new THREE.BufferGeometry().setFromPoints(projectedPoints);
-// const line = new THREE.Line(lineGeometry, lineMaterial);
-// scene.add(line);

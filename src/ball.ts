@@ -8,7 +8,12 @@ export default class JugglingBall extends THREE.Mesh {
   acceleration = new THREE.Vector3(0, 0, 0);
   velocity = new THREE.Vector3(0, 0, 0);
   state: BallState = BallState.Idle;
-  throwForce: THREE.Vector3 = new THREE.Vector3(0, 100, 0);
+  throwForce: THREE.Vector3 = new THREE.Vector3(
+    -5,
+    5,
+
+    0
+  );
   mass: number = 1;
   constructor(
     sphereGeometry: THREE.SphereGeometry,
@@ -28,8 +33,10 @@ export default class JugglingBall extends THREE.Mesh {
 
   //* (This is simply an apply force function)
   throwBall(force: THREE.Vector3) {
-    this.velocity.set(0, 0, 0);
+    // this.velocity.set(0, 0, 0);
+    this.acceleration.set(0, 0, 0);
     this.acceleration.add(force.clone().divideScalar(this.mass));
+    console.log(this.acceleration);
   }
 
   getPosition() {

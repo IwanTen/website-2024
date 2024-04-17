@@ -1,44 +1,45 @@
 import * as THREE from 'three';
 import JugglingBall from './ball';
 import * as dat from 'dat.gui';
+import { vec3 } from 'three/examples/jsm/nodes/Nodes.js';
 
 const canvas: HTMLCanvasElement | null = document.querySelector('canvas');
 const scene = new THREE.Scene();
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.08); //* LIGHTING
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); //* LIGHTING
 const pointLight = new THREE.PointLight(0xff0000, 1, 100);
 pointLight.position.set(1, 2, 1);
 scene.add(ambientLight);
 scene.add(pointLight);
 
 const camera = new THREE.PerspectiveCamera( //* CAMERA
-  75,
+  50,
   window.innerWidth / window.innerHeight,
   0.1,
   1000
 );
-camera.position.z = 18;
+camera.position.z = 20;
 
 const SPHERE_FIDELITY = 16;
 const sphereGeometry = new THREE.SphereGeometry(
-  1,
+  0.5,
   SPHERE_FIDELITY,
   SPHERE_FIDELITY
 );
 
-let deltaSeperation = 5;
+let deltaSeperation = 3;
 const JugglingBallConfig = [
   {
     startPos: [-deltaSeperation, 0, 0],
-    color: 0xff0000,
+    color: 0xff788a,
   },
   {
     startPos: [deltaSeperation, 0, 0],
-    color: 0x00ff00,
+    color: 0x78ffb0,
   },
   {
     startPos: [0, deltaSeperation, 0],
-    color: 0x0000ff,
+    color: 0x78f4ff,
   },
 ];
 
@@ -115,7 +116,7 @@ function _generatePath(
     const time = i * (seconds / lineResolution);
     let newPoint = _calculateKinematicPosition(
       position,
-      new THREE.Vector3(0, 0, 0),
+      velocity,
       acceleration,
       time
     );
@@ -140,8 +141,8 @@ function _calculateKinematicPosition(
 for (let i = 0; i < balls.length; i++) {
   let points = _generatePath(
     balls[i].position,
-    balls[i].throwForce,
-    gravity,
+    balls[i].throwForce.clone(),
+    gravity.clone(),
     PROJECTION_TIME,
     LINE_RESOLUTION
   );
@@ -166,6 +167,22 @@ gui
     enableGravity = !enableGravity;
   })
   .name('Enable global Force (gravity)');
+
+//on click, log out the mouse x and y
+document.addEventListener('click', (e) => {
+  //use three raycaster to see if we clicked on a ball
+  let raycaster = new THREE.Raycaster();
+  let mouse = new THREE.Vector2();
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  let intersects = raycaster.intersectObjects(balls);
+  if (intersects.length > 0) {
+    let obj = intersects[0].object;
+    console.log('Clicked on ball:', obj.uuid, obj.throwForce);
+    obj.throwBall(obj.throwForce);
+  }
+});
 
 // function _applyForce(force: THREE.Vector3) {
 //   velocity.set(0, 0, 0);

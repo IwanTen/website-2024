@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import JugglingBall from './ball';
 import * as dat from 'dat.gui';
-import { vec3 } from 'three/examples/jsm/nodes/Nodes.js';
+import { _drawCircle, _calculateKinematicPosition, _applyForce } from './utils';
+import JugglingBall from './Ball';
 
 const canvas: HTMLCanvasElement | null = document.querySelector('canvas');
 const scene = new THREE.Scene();
@@ -28,15 +28,16 @@ const sphereGeometry = new THREE.SphereGeometry(
 );
 
 let deltaSeperation = 3;
+
 const JugglingBallConfig = [
-  {
-    startPos: [-deltaSeperation, 0, 0],
-    color: 0xff788a,
-  },
-  {
-    startPos: [deltaSeperation, 0, 0],
-    color: 0x78ffb0,
-  },
+  // {
+  //   startPos: [-deltaSeperation, 0, 0],
+  //   color: 0xff788a,
+  // },
+  // {
+  //   startPos: [deltaSeperation, 0, 0],
+  //   color: 0x78ffb0,
+  // },
   {
     startPos: [0, deltaSeperation, 0],
     color: 0x78f4ff,
@@ -45,7 +46,6 @@ const JugglingBallConfig = [
 
 const balls: JugglingBall[] = [];
 
-//* init juggling balls from config
 for (let ball of JugglingBallConfig) {
   balls.push(
     new JugglingBall(
@@ -55,13 +55,11 @@ for (let ball of JugglingBallConfig) {
     )
   );
 }
-
-//* add juggling balls to scene
 balls.forEach((ball) => {
   scene.add(ball);
 });
 
-const renderer = new THREE.WebGLRenderer({ canvas: canvas! }); //* Init Renderer
+const renderer = new THREE.WebGLRenderer({ canvas: canvas! });
 renderer.setSize(window.innerWidth, window.innerHeight);
 const resizeCanvas = () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -75,7 +73,6 @@ let previousTime = Date.now();
 let enableGravity = false;
 let isPaused = false;
 const gravity = new THREE.Vector3(0, -9.8, 0);
-const mass = 5;
 
 function animate() {
   let currentTime = Date.now();
@@ -95,67 +92,32 @@ function animate() {
 
 animate();
 
-//* KINEMATICS / DEBUG (Draw trajectories of our ball objects)
+//TODO: Add kinematic display as a method of the ball class
 
 const PROJECTION_TIME = 1;
 const LINE_RESOLUTION = 100;
 
 // const lineGeometries = [];
 const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
-//Create a line for each ball
-
-function _generatePath(
-  position: THREE.Vector3,
-  velocity: THREE.Vector3,
-  acceleration: THREE.Vector3,
-  seconds: number,
-  lineResolution: number
-) {
+for (let i = 0; i < balls.length; i++) {
   let pointArray = [];
-  for (let i = 0; i < lineResolution; i++) {
-    const time = i * (seconds / lineResolution);
+  for (let j = 0; j < LINE_RESOLUTION; j++) {
+    const time = j * (PROJECTION_TIME / LINE_RESOLUTION);
     let newPoint = _calculateKinematicPosition(
-      position,
-      velocity,
-      acceleration,
+      balls[i].position,
+      balls[i].throwForce,
+      new THREE.Vector3(0, -9.81, 0),
       time
     );
     pointArray.push(newPoint);
   }
-  return pointArray;
-}
-
-function _calculateKinematicPosition(
-  initialPosition: THREE.Vector3,
-  initialVelocity: THREE.Vector3,
-  acceleration: THREE.Vector3,
-  time: number
-) {
-  return initialPosition
-    .clone()
-    .add(initialVelocity.clone().multiplyScalar(time))
-    .add(acceleration.clone().multiplyScalar(0.5 * time * time));
-}
-
-//* Generate an array of points for each ball
-for (let i = 0; i < balls.length; i++) {
-  let points = _generatePath(
-    balls[i].position,
-    balls[i].throwForce.clone(),
-    gravity.clone(),
-    PROJECTION_TIME,
-    LINE_RESOLUTION
-  );
-
-  let geometry = new THREE.BufferGeometry().setFromPoints(points);
-
+  let geometry = new THREE.BufferGeometry().setFromPoints(pointArray);
   let line = new THREE.Line(geometry, lineMaterial);
   scene.add(line);
 }
 
 //* DAT GUI
 var gui = new dat.GUI({ name: 'My GUI' });
-
 gui
   .add(
     {
@@ -168,9 +130,7 @@ gui
   })
   .name('Enable global Force (gravity)');
 
-//on click, log out the mouse x and y
 document.addEventListener('click', (e) => {
-  //use three raycaster to see if we clicked on a ball
   let raycaster = new THREE.Raycaster();
   let mouse = new THREE.Vector2();
   mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -179,12 +139,9 @@ document.addEventListener('click', (e) => {
   let intersects = raycaster.intersectObjects(balls);
   if (intersects.length > 0) {
     let obj = intersects[0].object;
-    console.log('Clicked on ball:', obj.uuid, obj.throwForce);
-    obj.throwBall(obj.throwForce);
+    if (obj instanceof JugglingBall) {
+      console.log('Clicked on ball:', obj.uuid, obj.throwForce);
+      obj.throwBall(obj.throwForce);
+    }
   }
 });
-
-// function _applyForce(force: THREE.Vector3) {
-//   velocity.set(0, 0, 0);
-//   acceleration.add(force.clone().divideScalar(mass));
-// }

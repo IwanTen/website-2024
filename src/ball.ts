@@ -1,4 +1,4 @@
-import * as THREE from "three";
+import * as THREE from 'three';
 
 enum BallState {
   Idle,
@@ -24,15 +24,18 @@ export default class JugglingBall extends THREE.Mesh {
     this.velocity.add(this.acceleration.clone().multiplyScalar(deltaTime));
     this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
     this.acceleration.set(0, 0, 0);
-    console.log(this.velocity);
+    // console.log(this.velocity);
   }
 
   //* (This is simply an apply force function)
   applyForce(force: THREE.Vector3) {
-    // this.acceleration.add(force.clone().divideScalar(this.mass));
     this.velocity.set(0, 0, 0);
-    this.velocity.add(force.clone().divideScalar(this.mass));
+    this.velocity.add(force.clone());
     console.log(this.acceleration);
+  }
+
+  setVelocity(velocity: THREE.Vector3) {
+    this.velocity = velocity;
   }
 
   getPosition() {

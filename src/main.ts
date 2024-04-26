@@ -1,9 +1,9 @@
-import * as THREE from 'three';
-import * as dat from 'dat.gui';
-import { _drawCircle, _calculateKinematicPosition, _applyForce } from './utils';
-import JugglingBall from './Ball';
+import * as THREE from "three";
+import * as dat from "dat.gui";
+import { _drawCircle, _calculateKinematicPosition, _applyForce } from "./utils";
+import JugglingBall from "./ball";
 
-const canvas: HTMLCanvasElement | null = document.querySelector('canvas');
+const canvas: HTMLCanvasElement | null = document.querySelector("canvas");
 const scene = new THREE.Scene();
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); //* LIGHTING
@@ -66,7 +66,7 @@ const resizeCanvas = () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
 };
-window.addEventListener('resize', resizeCanvas);
+window.addEventListener("resize", resizeCanvas);
 
 let previousTime = Date.now();
 
@@ -82,7 +82,7 @@ function animate() {
 
   if (!isPaused) {
     balls.forEach((ball) => {
-      ball.updatePhysics(deltaTime, enableGravity ? gravity : null);
+      // ball.updatePhysics(deltaTime, enableGravity ? gravity : null);
     });
   }
 
@@ -105,7 +105,7 @@ for (let i = 0; i < balls.length; i++) {
     const time = j * (PROJECTION_TIME / LINE_RESOLUTION);
     let newPoint = _calculateKinematicPosition(
       balls[i].position,
-      balls[i].throwForce,
+      new THREE.Vector3(), //balls[i].throwForce
       new THREE.Vector3(0, -9.81, 0),
       time
     );
@@ -117,31 +117,31 @@ for (let i = 0; i < balls.length; i++) {
 }
 
 //* DAT GUI
-var gui = new dat.GUI({ name: 'My GUI' });
+var gui = new dat.GUI({ name: "My GUI" });
 gui
   .add(
     {
       useGravity: enableGravity,
     },
-    'useGravity'
+    "useGravity"
   )
   .onChange(() => {
     enableGravity = !enableGravity;
   })
-  .name('Enable global Force (gravity)');
+  .name("Enable global Force (gravity)");
 
-document.addEventListener('click', (e) => {
-  let raycaster = new THREE.Raycaster();
-  let mouse = new THREE.Vector2();
-  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-  raycaster.setFromCamera(mouse, camera);
-  let intersects = raycaster.intersectObjects(balls);
-  if (intersects.length > 0) {
-    let obj = intersects[0].object;
-    if (obj instanceof JugglingBall) {
-      console.log('Clicked on ball:', obj.uuid, obj.throwForce);
-      obj.throwBall(obj.throwForce);
-    }
-  }
-});
+// document.addEventListener("click", (e) => {
+//   let raycaster = new THREE.Raycaster();
+//   let mouse = new THREE.Vector2();
+//   mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+//   mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+//   raycaster.setFromCamera(mouse, camera);
+//   let intersects = raycaster.intersectObjects(balls);
+//   if (intersects.length > 0) {
+//     let obj = intersects[0].object;
+//     if (obj instanceof JugglingBall) {
+//       console.log("Clicked on ball:", obj.uuid, obj.throwForce);
+//       obj.throwBall(obj.throwForce);
+//     }
+//   }
+// });

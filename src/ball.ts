@@ -8,12 +8,6 @@ export default class JugglingBall extends THREE.Mesh {
   acceleration = new THREE.Vector3(0, 0, 0);
   velocity = new THREE.Vector3(0, 0, 0);
   state: BallState = BallState.Idle;
-  throwForce: THREE.Vector3 = new THREE.Vector3(
-    -5,
-    5,
-
-    0
-  );
   mass: number = 1;
   constructor(
     sphereGeometry: THREE.SphereGeometry,
@@ -24,22 +18,33 @@ export default class JugglingBall extends THREE.Mesh {
     this.position.set(startPos[0], startPos[1], startPos[2]);
   }
 
-  updatePhysics(deltaTime: number, globalForce: THREE.Vector3 | null = null) {
-    globalForce && this.acceleration.add(globalForce); // if provided a global force we add to accel.
+  updatePhysics(deltaTime: number) {
+    if (this.state === BallState.Idle) return;
+    this.acceleration.add(new THREE.Vector3(0, -9.8, 0));
     this.velocity.add(this.acceleration.clone().multiplyScalar(deltaTime));
     this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
     this.acceleration.set(0, 0, 0);
+    // console.log(this.velocity);
   }
 
   //* (This is simply an apply force function)
-  throwBall(force: THREE.Vector3) {
-    // this.velocity.set(0, 0, 0);
-    this.acceleration.set(0, 0, 0);
-    this.acceleration.add(force.clone().divideScalar(this.mass));
+  applyForce(force: THREE.Vector3) {
+    this.velocity.set(0, 0, 0);
+    this.velocity.add(force.clone());
     console.log(this.acceleration);
+  }
+
+  setVelocity(velocity: THREE.Vector3) {
+    this.velocity = velocity;
   }
 
   getPosition() {
     return this.position;
   }
+
+  setState(state: string) {
+    this.state = BallState[state as keyof typeof BallState];
+  }
+
+  private checkIfOffScreen() {}
 }

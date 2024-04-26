@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as dat from 'dat.gui';
 import { _drawCircle, _calculateKinematicPosition, _applyForce } from './utils';
-import JugglingBall from './Ball';
+import JugglingBall from './ball';
 
 const canvas: HTMLCanvasElement | null = document.querySelector('canvas');
 const scene = new THREE.Scene();
@@ -82,7 +82,7 @@ function animate() {
 
   if (!isPaused) {
     balls.forEach((ball) => {
-      ball.updatePhysics(deltaTime, enableGravity ? gravity : null);
+      // ball.updatePhysics(deltaTime, enableGravity ? gravity : null);
     });
   }
 
@@ -105,7 +105,7 @@ for (let i = 0; i < balls.length; i++) {
     const time = j * (PROJECTION_TIME / LINE_RESOLUTION);
     let newPoint = _calculateKinematicPosition(
       balls[i].position,
-      balls[i].throwForce,
+      new THREE.Vector3(0, -9.81, 0),
       new THREE.Vector3(0, -9.81, 0),
       time
     );
@@ -140,8 +140,8 @@ document.addEventListener('click', (e) => {
   if (intersects.length > 0) {
     let obj = intersects[0].object;
     if (obj instanceof JugglingBall) {
-      console.log('Clicked on ball:', obj.uuid, obj.throwForce);
-      obj.throwBall(obj.throwForce);
+      // console.log('Clicked on ball:', obj.uuid, obj.throwForce);
+      // obj.throwBall(obj.throwForce);
     }
   }
 });

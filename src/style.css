@@ -22,18 +22,28 @@ html {
 body {
   min-height: 100%;
   height: 100%;
-  border: 4px solid rgb(157, 195, 240);
 }
 
 .main {
+  /* border: 4px solid rgb(157, 195, 240); */
   height: 100%;
   overflow-y: hidden;
+  position: relative;
 }
 
 canvas {
-  border: 4px solid rgb(199, 68, 68);
+  /* border: 4px solid rgb(199, 68, 68); */
   width: 100%;
   height: 100%;
+}
+.ui-canvas {
+  z-index: -1;
+  position: absolute;
+}
+
+.three-canvas {
+  z-index: -2;
+  position: absolute;
 }
 
 .logo {

@@ -22,9 +22,54 @@ const camera = new THREE.PerspectiveCamera( //* CAMERA
   0.1,
   1000
 );
-camera.position.z = 20;
+camera.position.z = 15;
 
 const SPHERE_FIDELITY = 16;
+
+const markerGeometry = new THREE.SphereGeometry(
+  0.1,
+  SPHERE_FIDELITY,
+  SPHERE_FIDELITY
+);
+
+const leftHand = new THREE.Mesh(
+  markerGeometry,
+  new THREE.MeshToonMaterial({ color: 0xb642f5 })
+);
+const rightHand = new THREE.Mesh(
+  markerGeometry,
+  new THREE.MeshToonMaterial({ color: 0xb642f5 })
+);
+
+function setObjectWorldPositions() {
+  let leftWorldPoint = _screenToWorldPoint(
+    uiController.hands.left.x,
+    uiController.hands.left.y,
+    camera
+  );
+  let rightWorldPoint = _screenToWorldPoint(
+    uiController.hands.right.x,
+    uiController.hands.right.y,
+    camera
+  );
+
+  let worldPointScalar = camera.position.z * 10;
+
+  leftHand.position.set(
+    leftWorldPoint.x * worldPointScalar,
+    leftWorldPoint.y * worldPointScalar,
+    0
+  );
+  rightHand.position.set(
+    rightWorldPoint.x * worldPointScalar,
+    rightWorldPoint.y * worldPointScalar,
+    0
+  );
+}
+setObjectWorldPositions();
+scene.add(leftHand);
+scene.add(rightHand);
+
 const sphereGeometry = new THREE.SphereGeometry(
   0.5,
   SPHERE_FIDELITY,
@@ -63,60 +108,20 @@ balls.forEach((ball) => {
   scene.add(ball);
 });
 
-const markerGeometry = new THREE.SphereGeometry(
-  0.1,
-  SPHERE_FIDELITY,
-  SPHERE_FIDELITY
-);
-
-const leftHand = new THREE.Mesh(
-  markerGeometry,
-  new THREE.MeshToonMaterial({ color: 0xb642f5 })
-);
-
-const rightHand = new THREE.Mesh(
-  markerGeometry,
-  new THREE.MeshToonMaterial({ color: 0xb642f5 })
-);
-let leftWorldPoint = _screenToWorldPoint(
-  uiController.hands.left.x,
-  uiController.hands.left.y,
-  camera
-);
-let rightWorldPoint = _screenToWorldPoint(
-  uiController.hands.right.x,
-  uiController.hands.right.y,
-  camera
-);
-
-let worldPointScalar = camera.position.z * 10;
-
-leftHand.position.set(
-  leftWorldPoint.x * worldPointScalar,
-  leftWorldPoint.y * worldPointScalar,
-  0
-);
-scene.add(leftHand);
-
-rightHand.position.set(
-  rightWorldPoint.x * worldPointScalar,
-  rightWorldPoint.y * worldPointScalar,
-  0
-);
-scene.add(rightHand);
-
 const renderer = new THREE.WebGLRenderer({ canvas: canvas! });
 renderer.setSize(window.innerWidth, window.innerHeight);
+
 const resizeCanvas = () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
+  setObjectWorldPositions();
 };
 window.addEventListener('resize', resizeCanvas);
 
 let previousTime = Date.now();
 
-const gravity = new THREE.Vector3(0, -9.8, 0);
+// const gravity = new THREE.Vector3(0, -9.8, 0);
 
 function animate() {
   let currentTime = Date.now();

@@ -1,65 +1,64 @@
-/*
-//*TODO: Make hands global variables
-*/
-
 import { _drawCircle, _drawLine } from './utils';
 
-const Hands = {
-  left: {
-    x: window.innerWidth / 4,
-    y: window.innerHeight / 2 + 100,
-  },
-  right: {
-    x: (3 * window.innerWidth) / 4,
-    y: window.innerHeight / 2 + 100,
-  },
-};
-
-const updateHandPositions = () => {
-  const leftHandX = window.innerWidth / 4;
-  const rightHandX = window.innerWidth - leftHandX;
-  const handOffsetY = 100;
-  const handHeight = window.innerHeight / 2 + handOffsetY;
-  Hands.left = { x: leftHandX, y: handHeight };
-  Hands.right = { x: rightHandX, y: handHeight };
-};
-updateHandPositions();
-
-const canvas = document.querySelector('canvas') as HTMLCanvasElement | null;
-if (canvas === null) {
-  throw new Error('No canvas element found in the document.');
+interface Hands {
+  left: { x: number; y: number };
+  right: { x: number; y: number };
 }
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+export default class InterfaceController {
+  canvas!: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D;
+  hands: Hands = {
+    left: {
+      x: window.innerWidth / 4,
+      y: window.innerHeight / 2 + 100,
+    },
+    right: {
+      x: (3 * window.innerWidth) / 4,
+      y: window.innerHeight / 2 + 100,
+    },
+  };
 
-const ctx = canvas!.getContext('2d');
-if (ctx === null) {
-  throw new Error('Could not get 2d context from canvas.');
-}
-ctx.fillStyle = 'white';
-ctx.strokeStyle = 'white';
+  constructor() {
+    this.canvas = document.querySelector('.ui-canvas') as HTMLCanvasElement;
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
 
-function drawUI() {
-  ctx!.lineWidth = 2;
-  ctx!.strokeStyle = 'white';
-  ctx!.fillStyle = 'white';
-  _drawCircle(ctx!, Hands.left.x, Hands.left.y, 5); //draw hands
-  _drawCircle(ctx!, Hands.right.x, Hands.right.y, 5);
-  let centerX = window.innerWidth / 2; // draw center line
-  _drawLine(ctx!, centerX, 0, centerX, window.innerHeight);
-}
-drawUI();
+    this.ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
+    if (this.ctx === null) {
+      throw new Error('Could not get 2d context from canvas.');
+    }
 
-function handleResize() {
-  updateHandPositions();
-  if (canvas === null) {
-    throw new Error('No canvas element found in the document.');
+    window.addEventListener('resize', () => {
+      this.updateHandPositions();
+      this.drawUI();
+    });
+    this.ctx.fillStyle = 'white';
+    this.ctx.strokeStyle = 'white';
+    this.ctx.lineWidth = 2;
+    this.updateHandPositions(); //call intitial position update and draw to canvas
+    this.drawUI();
   }
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  ctx!.clearRect(0, 0, canvas.width, canvas.height);
-  drawUI();
-  console.log(Hands.left.x, Hands.left.y);
+
+  private updateHandPositions = () => {
+    const leftHandX = window.innerWidth / 4;
+    const rightHandX = window.innerWidth - leftHandX;
+    const handOffsetY = 100;
+    const handHeight = window.innerHeight / 2 + handOffsetY;
+    this.hands.left = { x: leftHandX, y: handHeight };
+    this.hands.right = { x: rightHandX, y: handHeight };
+  };
+
+  private drawUI() {
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.fillStyle = 'white';
+    this.ctx.strokeStyle = 'white';
+    this.ctx.lineWidth = 2;
+    let centerX = window.innerWidth / 2; // draw center line
+    _drawCircle(this.ctx, this.hands.left.x, this.hands.left.y, 10); //draw this.hands
+    _drawCircle(this.ctx, this.hands.right.x, this.hands.right.y, 10);
+    _drawLine(this.ctx, centerX, 0, centerX, window.innerHeight);
+  }
 }
-window.addEventListener('resize', handleResize);

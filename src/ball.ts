@@ -11,7 +11,7 @@ export default class JugglingBall extends THREE.Mesh {
   mass: number = 1;
   constructor(
     sphereGeometry: THREE.SphereGeometry,
-    material: THREE.MeshToonMaterial,
+    material: THREE.MeshToonMaterial | THREE.MeshLambertMaterial,
     startPos: number[]
   ) {
     super(sphereGeometry, material);

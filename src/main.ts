@@ -41,6 +41,11 @@ const rightHand = new THREE.Mesh(
   new THREE.MeshToonMaterial({ color: 0xb642f5 })
 );
 
+const heightMarker = new THREE.Mesh(
+  markerGeometry,
+  new THREE.MeshToonMaterial({ color: 0xb642f5 })
+);
+
 function setObjectWorldPositions() {
   let leftWorldPoint = _screenToWorldPoint(
     uiController.hands.left.x,
@@ -50,6 +55,12 @@ function setObjectWorldPositions() {
   let rightWorldPoint = _screenToWorldPoint(
     uiController.hands.right.x,
     uiController.hands.right.y,
+    camera
+  );
+
+  let heightWorldPoint = _screenToWorldPoint(
+    window.innerWidth / 2,
+    uiController.targetHeight,
     camera
   );
 
@@ -65,10 +76,17 @@ function setObjectWorldPositions() {
     rightWorldPoint.y * worldPointScalar,
     0
   );
+
+  heightMarker.position.set(
+    heightWorldPoint.x * worldPointScalar,
+    heightWorldPoint.y * worldPointScalar,
+    0
+  );
 }
 setObjectWorldPositions();
 scene.add(leftHand);
 scene.add(rightHand);
+scene.add(heightMarker);
 
 const sphereGeometry = new THREE.SphereGeometry(
   0.5,
@@ -76,19 +94,17 @@ const sphereGeometry = new THREE.SphereGeometry(
   SPHERE_FIDELITY
 );
 
-let deltaSeperation = 3;
-
 const JugglingBallConfig = [
   {
-    startPos: [-deltaSeperation, 0, 0],
+    startPos: [leftHand.position.x, leftHand.position.y, 0],
     color: 0xff788a,
   },
   {
-    startPos: [deltaSeperation, 0, 0],
+    startPos: [rightHand.position.x, rightHand.position.y, 0],
     color: 0x78ffb0,
   },
   {
-    startPos: [0, deltaSeperation, 0],
+    startPos: [leftHand.position.x, leftHand.position.y, 0],
     color: 0x78f4ff,
   },
 ];
@@ -96,17 +112,14 @@ const JugglingBallConfig = [
 const balls: JugglingBall[] = [];
 
 for (let ball of JugglingBallConfig) {
-  balls.push(
-    new JugglingBall(
-      sphereGeometry,
-      new THREE.MeshLambertMaterial({ color: ball.color }),
-      ball.startPos
-    )
+  let newBall = new JugglingBall(
+    sphereGeometry,
+    new THREE.MeshLambertMaterial({ color: ball.color }),
+    ball.startPos
   );
+  balls.push(newBall);
+  scene.add(newBall);
 }
-balls.forEach((ball) => {
-  scene.add(ball);
-});
 
 const renderer = new THREE.WebGLRenderer({ canvas: canvas! });
 renderer.setSize(window.innerWidth, window.innerHeight);

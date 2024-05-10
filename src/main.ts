@@ -68,25 +68,42 @@ const markerGeometry = new THREE.SphereGeometry(
   SPHERE_FIDELITY,
   SPHERE_FIDELITY
 );
-//CREATE MARKERS
-const leftMarker = new THREE.Mesh(
-  markerGeometry,
-  new THREE.MeshToonMaterial({ color: 0xb642f5 })
-);
-const rightMarker = new THREE.Mesh(
+
+const leftHand = new THREE.Mesh(
   markerGeometry,
   new THREE.MeshToonMaterial({ color: 0xb642f5 })
 );
 
-let leftMarkerPos = _screenToWorldPoint(
+const rightHand = new THREE.Mesh(
+  markerGeometry,
+  new THREE.MeshToonMaterial({ color: 0xb642f5 })
+);
+let leftWorldPoint = _screenToWorldPoint(
   uiController.hands.left.x,
   uiController.hands.left.y,
   camera
 );
-console.log(leftMarkerPos);
-leftMarker.position.set(leftMarkerPos.x * 50, leftMarkerPos.y * 50, 0);
+let rightWorldPoint = _screenToWorldPoint(
+  uiController.hands.right.x,
+  uiController.hands.right.y,
+  camera
+);
 
-scene.add(leftMarker, rightMarker);
+let worldPointScalar = camera.position.z * 10;
+
+leftHand.position.set(
+  leftWorldPoint.x * worldPointScalar,
+  leftWorldPoint.y * worldPointScalar,
+  0
+);
+scene.add(leftHand);
+
+rightHand.position.set(
+  rightWorldPoint.x * worldPointScalar,
+  rightWorldPoint.y * worldPointScalar,
+  0
+);
+scene.add(rightHand);
 
 const renderer = new THREE.WebGLRenderer({ canvas: canvas! });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -116,8 +133,6 @@ function animate() {
 }
 animate();
 
-//TODO: Add kinematic display as a method of the ball class
-
 function _screenToWorldPoint(
   x: number,
   y: number,
@@ -126,11 +141,14 @@ function _screenToWorldPoint(
   let vector = new THREE.Vector3(
     (x / window.innerWidth) * 2 - 1,
     -(y / window.innerHeight) * 2 + 1,
-    0.5
+    -1
   );
+  camera.updateMatrixWorld(true);
   vector.unproject(camera);
   return vector;
 }
+
+// TODO: Add kinematic display as a method of the ball class
 
 // const PROJECTION_TIME = 1;
 // const LINE_RESOLUTION = 100;

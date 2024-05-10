@@ -1,6 +1,10 @@
 import * as THREE from 'three';
-import { _drawCircle, _calculateKinematicPosition, _applyForce } from './utils';
-import JugglingBall from './ball';
+import {
+  _drawCircle,
+  _calculateKinematicPosition,
+  _applyForce,
+} from '../utils';
+import JugglingBall from '../ball';
 
 const canvas: HTMLCanvasElement | null = document.querySelector('canvas');
 const scene = new THREE.Scene();

@@ -98,14 +98,17 @@ const JugglingBallConfig = [
   {
     startPos: [leftHand.position.x, leftHand.position.y, 0],
     color: 0xff788a,
+    leftHand: true,
   },
   {
     startPos: [rightHand.position.x, rightHand.position.y, 0],
     color: 0x78ffb0,
+    leftHand: false,
   },
   {
     startPos: [leftHand.position.x, leftHand.position.y, 0],
     color: 0x78f4ff,
+    leftHand: true,
   },
 ];
 
@@ -115,7 +118,8 @@ for (let ball of JugglingBallConfig) {
   let newBall = new JugglingBall(
     sphereGeometry,
     new THREE.MeshLambertMaterial({ color: ball.color }),
-    ball.startPos
+    ball.startPos,
+    ball.leftHand
   );
   balls.push(newBall);
   scene.add(newBall);
@@ -150,6 +154,36 @@ function animate() {
   requestAnimationFrame(animate);
 }
 animate();
+
+const INTERVAL = 1;
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === ' ') {
+    let jBall = balls[0];
+    jBall.setState('Active');
+
+    // let target = balls[1];
+    let target = jBall.leftHand ? leftHand : rightHand;
+    //TODO add a check to see if the ball is already in motion
+    let distance = target.position.clone().sub(jBall.position).length();
+    console.log('distance to target: ', distance);
+
+    let forceX = -distance / INTERVAL;
+    let forceY = -(-9.81 * (INTERVAL / 2));
+    // console.log(force);
+    let forceVector = new THREE.Vector3(-forceX, forceY, 0);
+    jBall.applyForce(forceVector);
+    jBall.setState('Active');
+    setTimeout(() => {
+      jBall.acceleration.set(0, 0, 0);
+      jBall.setVelocity(new THREE.Vector3(0, 0, 0));
+      jBall.setState('Idle');
+      jBall.leftHand = !jBall.leftHand;
+
+      console.log('interval complete', jBall.position.y);
+    }, INTERVAL * 1000);
+  }
+});
 
 function _screenToWorldPoint(
   x: number,

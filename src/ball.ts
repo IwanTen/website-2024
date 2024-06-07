@@ -9,10 +9,12 @@ export default class JugglingBall extends THREE.Mesh {
   velocity = new THREE.Vector3(0, 0, 0);
   state: BallState = BallState.Idle;
   mass: number = 1;
+  leftHand: boolean = false;
   constructor(
     sphereGeometry: THREE.SphereGeometry,
     material: THREE.MeshToonMaterial | THREE.MeshLambertMaterial,
-    startPos: number[]
+    startPos: number[],
+    leftHand: boolean
   ) {
     super(sphereGeometry, material);
     this.position.set(startPos[0], startPos[1], startPos[2]);
@@ -46,5 +48,5 @@ export default class JugglingBall extends THREE.Mesh {
     this.state = BallState[state as keyof typeof BallState];
   }
 
-  private checkIfOffScreen() {}
+  // Check if ball is offscreen;
 }

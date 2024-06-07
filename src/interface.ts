@@ -8,7 +8,7 @@ interface Hands {
 export default class InterfaceController {
   canvas!: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  targetHeight = window.innerHeight / 2;
+  targetHeight = window.innerHeight / 2 - 100;
   hands: Hands = {
     left: {
       x: window.innerWidth / 4,
@@ -42,13 +42,13 @@ export default class InterfaceController {
   }
 
   private updateScreenPositions = () => {
-    const leftHandX = window.innerWidth / 4;
+    const leftHandX = window.innerWidth / 3;
     const rightHandX = window.innerWidth - leftHandX;
     const handOffsetY = 100;
     const handHeight = window.innerHeight / 2 + handOffsetY;
     this.hands.left = { x: leftHandX, y: handHeight };
     this.hands.right = { x: rightHandX, y: handHeight };
-    this.targetHeight = window.innerHeight / 3;
+    this.targetHeight = window.innerHeight / 3 - 100;
   };
 
   private drawUI() {
